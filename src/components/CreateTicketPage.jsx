@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 const CreateTicketPage = () => {
   const [isManual, setIsManual] = useState(false);
   const [formData, setFormData] = useState({
+    eventType: '',
     ticketId: '',
     eventName: '',
     eventDate: '',
@@ -20,6 +21,9 @@ const CreateTicketPage = () => {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
   const navigate = useNavigate();
+
+  // Event type options
+  const eventTypes = ['MOVIE', 'SPORT', 'EVENT'];
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -139,6 +143,26 @@ const CreateTicketPage = () => {
             ) : (
               // Manual Entry Form
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="form-control md:col-span-2">
+                  <label className="label">
+                    <span className="label-text font-semibold">Event Type *</span>
+                  </label>
+                  <select
+                    name="eventType"
+                    value={formData.eventType}
+                    onChange={handleInputChange}
+                    className="select select-bordered w-full"
+                    required
+                  >
+                    <option value="">Select Event Type</option>
+                    {eventTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text">Ticket ID</span>

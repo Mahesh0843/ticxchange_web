@@ -44,12 +44,12 @@ import HowItWorks from "./components/HowItWorks";
 import HowToSell from "./components/HowToSell";
 import AboutUs from "./components/AboutUs";
 import Chat from "./components/Chat";
+import BuyerTicketPage from "./pages/BuyerTicketPage";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Body />}>
-
         <Route index element={<TicketSearch />} />
         <Route path="login" element={<Login />} />
         <Route path="how-to-sell" element={<HowToSell />} />
@@ -64,6 +64,7 @@ function App() {
         <Route path="requests" element={<Requests />} />
         <Route path="ticket/:id" element={<TicketDetails />} />
         <Route path="chat/:targetUserId" element={<Chat />} />
+        <Route path="buyer/tickets" element={<BuyerTicketPage />} />
       </Route>
     </Routes>
   );

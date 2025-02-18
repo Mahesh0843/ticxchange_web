@@ -55,12 +55,13 @@ const NavBar = () => {
           </ul>
         ) : (
           <div className="flex items-center gap-4">
-            <Link to="/seller/tickets" className="hover:text-gray-400">
+              <Link 
+              to={user.data?.user?.role === "seller" ? "/seller/tickets" : "/buyer/tickets"} 
+              className="hover:text-gray-400"
+            >
               Your Tickets
             </Link>
-            <Link to="/your-listings" className="hover:text-gray-400">
-              Your Listings
-            </Link>
+            
             {/* Conditionally render Upload Tickets for sellers */}
             {user.data?.user?.role === "seller" && (
               <Link to="/createticket" className="hover:text-gray-400">

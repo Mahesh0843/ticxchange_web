@@ -15,6 +15,7 @@ const UpdateTicketPage = () => {
   const [ticketImage, setTicketImage] = useState(null);
   
   const [formData, setFormData] = useState({
+    eventType: '',
     ticketId: '',
     eventName: '',
     eventDate: '',
@@ -30,6 +31,9 @@ const UpdateTicketPage = () => {
     }
   });
 
+  // Event type options
+  const eventTypes = ['MOVIE', 'SPORT', 'EVENT'];
+
   useEffect(() => {
     const fetchTicket = async () => {
       try {
@@ -42,6 +46,7 @@ const UpdateTicketPage = () => {
         const formattedDate = format(new Date(ticket.eventDate), "yyyy-MM-dd'T'HH:mm");
         
         setFormData({
+          eventType: ticket.eventType || '',
           ticketId: ticket.ticketId,
           eventName: ticket.eventName,
           eventDate: formattedDate,
@@ -169,6 +174,26 @@ const UpdateTicketPage = () => {
 
           <form onSubmit={handleUpdate} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="form-control md:col-span-2">
+                <label className="label">
+                  <span className="label-text font-semibold">Event Type *</span>
+                </label>
+                <select
+                  name="eventType"
+                  value={formData.eventType}
+                  onChange={handleInputChange}
+                  className="select select-bordered w-full"
+                  required
+                >
+                  <option value="">Select Event Type</option>
+                  {eventTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="form-control">
                 <label className="label">
                   <span className="label-text">Ticket ID</span>
