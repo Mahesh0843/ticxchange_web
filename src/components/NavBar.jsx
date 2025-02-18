@@ -5,6 +5,7 @@ import logo from "../assets/logo1.jpg";
 import { BASE_URL } from "../utils/constants";
 import { removeUser } from "../utils/userSlice";
 
+
 const NavBar = () => {
   const user = useSelector((store) => store.user);
   const dispatch = useDispatch();
@@ -42,7 +43,7 @@ const NavBar = () => {
               </Link>
             </li>
             <li>
-              <Link to="/become-a-partner" className="hover:text-gray-400">
+              <Link to="/about-us" className="hover:text-gray-400">
                 Become a partner
               </Link>
             </li>
@@ -54,7 +55,7 @@ const NavBar = () => {
           </ul>
         ) : (
           <div className="flex items-center gap-4">
-            <Link to="/your-tickets" className="hover:text-gray-400">
+            <Link to="/seller/tickets" className="hover:text-gray-400">
               Your Tickets
             </Link>
             <Link to="/your-listings" className="hover:text-gray-400">

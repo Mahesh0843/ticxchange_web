@@ -2,6 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../utils/constants';
+import dayjs from 'dayjs';
 
 const CreateTicketPage = () => {
   const [isManual, setIsManual] = useState(false);
@@ -12,7 +13,8 @@ const CreateTicketPage = () => {
     seatNumber: '',
     price: '',
     numberOfTickets: '1',
-    venue: ''
+    venue: '',
+    ticketImage: null,  // Added image field
   });
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -25,7 +27,12 @@ const CreateTicketPage = () => {
   };
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const selectedFile = e.target.files[0];
+    if (isManual) {
+      setFormData({ ...formData, ticketImage: selectedFile });
+    } else {
+      setFile(selectedFile);
+    }
   };
 
   const showToast = (message, type) => {
@@ -36,24 +43,39 @@ const CreateTicketPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
       let response;
       const config = { withCredentials: true };
-
+  
       if (isManual) {
-        // Manual ticket submission
-        response = await axios.post(`${BASE_URL}/tickets/manual`, formData, config);
-      } else {
-        // Automatic ticket submission with file
-        const formData = new FormData();
-        formData.append('ticketImage', file);
-        response = await axios.post(`${BASE_URL}/tickets/create`, formData, {
+        // Convert eventDate to the required format
+        const formattedDate = dayjs(formData.eventDate).format('YYYY-MM-DD HH:mm:ss');
+  
+        const manualFormData = new FormData();
+        Object.keys(formData).forEach((key) => {
+          if (key === 'ticketImage' && formData.ticketImage) {
+            manualFormData.append('ticketImage', formData.ticketImage);
+          } else if (key === 'eventDate') {
+            manualFormData.append('eventDate', formattedDate);
+          } else {
+            manualFormData.append(key, formData[key]);
+          }
+        });
+  
+        response = await axios.post(`${BASE_URL}/tickets/manual`, manualFormData, {
           ...config,
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      } else {
+        const uploadFormData = new FormData();
+        uploadFormData.append('ticketImage', file);
+        response = await axios.post(`${BASE_URL}/tickets/create`, uploadFormData, {
+          ...config,
+          headers: { 'Content-Type': 'multipart/form-data' },
         });
       }
-
+  
       if (response.data.ticket) {
         showToast('Ticket created successfully!', 'success');
         setTimeout(() => {
@@ -215,6 +237,20 @@ const CreateTicketPage = () => {
                     required
                   />
                 </div>
+
+                {/* Image Upload Field for Manual Entry */}
+                <div className="form-control md:col-span-2">
+                  <label className="label">
+                    <span className="label-text">Upload Ticket Image</span>
+                  </label>
+                  <input
+                    type="file"
+                    name="ticketImage"
+                    onChange={handleFileChange}
+                    className="file-input file-input-bordered file-input-primary w-full"
+                    accept="image/*"
+                  />
+                </div>
               </div>
             )}
 
@@ -235,3 +271,5 @@ const CreateTicketPage = () => {
 };
 
 export default CreateTicketPage;
+
+

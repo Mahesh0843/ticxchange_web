@@ -1,88 +1,159 @@
 import axios from "axios";
 import { BASE_URL } from "../utils/constants";
 import { useDispatch, useSelector } from "react-redux";
-import { addRequests, removeRequest } from "../utils/requestSlice";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import {
+  setLoading,
+  setError,
+  addReceivedRequests,
+  removeReceivedRequest,
+  updateRequestStatus
+} from "../utils/requestSlice";
 
 const Requests = () => {
-  const requests = useSelector((store) => store.requests);
   const dispatch = useDispatch();
+  const navigate = useNavigate(); // Initialize useNavigate
+  const { receivedRequests, loading, error } = useSelector((state) => state.requests);
 
-  const reviewRequest = async (status, _id) => {
+  const reviewRequest = async (status, requestId) => {
     try {
-      const res = axios.post(
-        BASE_URL + "/request/review/" + status + "/" + _id,
+      dispatch(setLoading());
+      await axios.post(
+        `${BASE_URL}/connection/review/${requestId}/${status}`,
         {},
         { withCredentials: true }
       );
-      dispatch(removeRequest(_id));
-    } catch (err) {}
+      
+      // Update status before removal if needed
+      dispatch(updateRequestStatus({ 
+        requestId, 
+        status: status.toUpperCase(), 
+        isSent: false 
+      }));
+      
+      // Remove from UI after short delay
+      setTimeout(() => {
+        dispatch(removeReceivedRequest(requestId));
+        
+        // Navigate to Connections page if request is accepted
+        if (status === "accepted") {
+          navigate("/connections"); // Navigate to the Connections page
+        }
+      }, 500);
+
+    } catch (err) {
+      dispatch(setError(err.message));
+      console.error("Request review error:", err);
+    }
   };
 
   const fetchRequests = async () => {
     try {
-      const res = await axios.get(BASE_URL + "/user/requests/received", {
+      dispatch(setLoading());
+      const { data } = await axios.get(`${BASE_URL}/user/requests/received`, {
         withCredentials: true,
       });
-
-      dispatch(addRequests(res.data.data));
-    } catch (err) {}
+      dispatch(addReceivedRequests(data.data));
+    } catch (err) {
+      dispatch(setError(err.message));
+      console.error("Fetch requests error:", err);
+    }
   };
 
   useEffect(() => {
     fetchRequests();
   }, []);
 
-  if (!requests) return;
+  if (loading) {
+    return (
+      <div className="flex justify-center my-10">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
 
-  if (requests.length === 0)
-    return <h1 className="flex justify-center my-10"> No Requests Found</h1>;
+  if (error) {
+    return (
+      <div className="alert alert-error max-w-md mx-auto my-10">
+        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>Error: {error}</span>
+      </div>
+    );
+  }
+
+  if (!receivedRequests || receivedRequests.length === 0) {
+    return (
+      <div className="flex justify-center my-10">
+        <h1 className="text-xl text-neutral-content">No connection requests found</h1>
+      </div>
+    );
+  }
 
   return (
-    <div className="text-center my-10">
-      <h1 className="text-bold text-white text-3xl">Connection Requests</h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold text-center my-8 text-primary">
+        Received Connection Requests
+      </h1>
 
-      {requests.map((request) => {
-        const { _id, firstName, lastName, photoUrl, age, gender, about } =
-          request.fromUserId;
-
-        return (
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {receivedRequests.map(({ requestId, buyer, ticket, requestedAt }) => (
           <div
-            key={_id}
-            className=" flex justify-between items-center m-4 p-4 rounded-lg bg-base-300  mx-auto"
+            key={requestId}
+            className="card bg-base-100 shadow-xl transition-all hover:shadow-2xl"
           >
-            <div>
-              <img
-                alt="photo"
-                className="w-20 h-20 rounded-full"
-                src={photoUrl}
-              />
-            </div>
-            <div className="text-left mx-4 ">
-              <h2 className="font-bold text-xl">
-                {firstName + " " + lastName}
-              </h2>
-              {age && gender && <p>{age + ", " + gender}</p>}
-              <p>{about}</p>
-            </div>
-            <div>
-              <button
-                className="btn btn-primary mx-2"
-                onClick={() => reviewRequest("rejected", request._id)}
-              >
-                Reject
-              </button>
-              <button
-                className="btn btn-secondary mx-2"
-                onClick={() => reviewRequest("accepted", request._id)}
-              >
-                Accept
-              </button>
+            <div className="card-body">
+              {/* Buyer Information */}
+              <div className="flex items-center gap-4 mb-4">
+                <div className="avatar">
+                  <div className="w-16 rounded-full">
+                    <img src={buyer.photoUrl} alt={buyer.fullName} />
+                  </div>
+                </div>
+                <div>
+                  <h2 className="card-title">{buyer.firstName} {buyer.lastName}</h2>
+                  <p className="text-sm text-gray-500">
+                    {buyer.buyerStats?.totalTicketsBought || 0} previous purchases
+                  </p>
+                </div>
+              </div>
+
+              {/* Ticket Details */}
+              <div className="mb-4">
+                <h3 className="font-bold text-lg mb-2">{ticket.eventName}</h3>
+                <div className="text-sm space-y-1">
+                  <p>🗓 {new Date(ticket.eventDate).toLocaleDateString()}</p>
+                  <p>📍 {ticket.venue}</p>
+                  <p>💵 ₹{ticket.price.toLocaleString()}</p>
+                  <p className="text-xs text-gray-400">
+                    Requested: {new Date(requestedAt).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="card-actions justify-end">
+                <button 
+                  onClick={() => reviewRequest("rejected", requestId)}
+                  className="btn btn-outline btn-error btn-sm"
+                >
+                  Reject
+                </button>
+                <button
+                  onClick={() => reviewRequest("accepted", requestId)}
+                  className="btn btn-primary btn-sm"
+                >
+                  Accept
+                </button>
+              </div>
             </div>
           </div>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 };
+
 export default Requests;
