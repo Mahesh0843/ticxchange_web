@@ -8,7 +8,7 @@ import {
   setLoading, 
   setError, 
   addBuyerTickets 
-} from "../utils/ticketSlice";
+} from "../utils/ticketSLice";
 import BuyerTicketCard from "../components/BuyerTicketCard";
 
 const BuyerTicketPage = () => {

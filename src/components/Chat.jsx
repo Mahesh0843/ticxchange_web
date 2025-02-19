@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { createSocketConnection } from "../utils/socket";
 import { useSelector } from "react-redux";
+import img4 from "../assets/img4.jpg";
 import axios from "axios";
 import { BASE_URL } from "../utils/constants";
 import { toast } from "react-hot-toast";
@@ -434,7 +435,15 @@ const Chat = () => {
           </div>
         ) : (
           <>
-            <div className="flex-1 overflow-y-auto p-5">
+            <div 
+              className="flex-1 overflow-y-auto p-5"
+              style={{
+                backgroundImage: `url(${img4})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            >
               {isLoading ? (
                 <div className="text-center">
                   <span className="loading loading-spinner loading-md"></span>
