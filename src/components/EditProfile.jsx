@@ -131,13 +131,11 @@ const EditProfile = ({ user }) => {
         </div>
       )}
 
-      <div className="rounded-lg bg-white shadow-lg flex-1 dark:bg-gray-800">
+      <div className="rounded-lg bg-base-200 shadow-lg flex-1">
         <div className="p-6">
           <h2 className="text-2xl font-bold mb-6">Edit Profile</h2>
 
           <div className="space-y-6">
-          
-
             {/* First Name */}
             <div>
               <label className="block text-sm font-medium mb-2">
@@ -145,7 +143,7 @@ const EditProfile = ({ user }) => {
               </label>
               <input
                 type="text"
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                className="input input-bordered w-full"
                 value={formData.firstName}
                 onChange={(e) =>
                   setFormData({ ...formData, firstName: e.target.value })
@@ -160,7 +158,7 @@ const EditProfile = ({ user }) => {
               </label>
               <input
                 type="text"
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                className="input input-bordered w-full"
                 value={formData.lastName}
                 onChange={(e) =>
                   setFormData({ ...formData, lastName: e.target.value })
@@ -175,7 +173,7 @@ const EditProfile = ({ user }) => {
               </label>
               <input
                 type="text"
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                className="input input-bordered w-full"
                 value={formData.photoUrl}
                 onChange={(e) =>
                   setFormData({ ...formData, photoUrl: e.target.value })
@@ -183,7 +181,7 @@ const EditProfile = ({ user }) => {
               />
             </div>
 
-            {/* Phone Number - Read Only */}
+            {/* Phone Number */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Phone Number
@@ -191,13 +189,13 @@ const EditProfile = ({ user }) => {
               <div className="flex gap-2">
                 <input
                   type="tel"
-                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 disabled:bg-gray-100 dark:disabled:bg-gray-600"
+                  className="input input-bordered flex-1 disabled:bg-base-300"
                   value={formData.phoneNumber}
                   disabled={true}
                 />
                 {!user.data?.user?.phoneVerified && (
                   <button
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn btn-primary"
                     onClick={handleSendOTP}
                     disabled={loading || showOtpField}
                   >
@@ -205,7 +203,7 @@ const EditProfile = ({ user }) => {
                   </button>
                 )}
                 {user.data?.user?.phoneVerified && (
-                  <span className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-lg dark:bg-green-800 dark:text-green-100">
+                  <span className="badge badge-success gap-2">
                     Verified
                   </span>
                 )}
@@ -221,13 +219,13 @@ const EditProfile = ({ user }) => {
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                    className="input input-bordered flex-1"
                     placeholder="4-digit code"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
                   />
                   <button
-                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn btn-success"
                     onClick={handleVerifyOTP}
                     disabled={loading || otp.length !== 4}
                   >
@@ -238,7 +236,7 @@ const EditProfile = ({ user }) => {
             )}
 
             <button
-              className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+              className="btn btn-primary w-full"
               onClick={handleSaveProfile}
               disabled={loading}
             >

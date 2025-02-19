@@ -1,6 +1,15 @@
-
 @import "tailwindcss";
 @plugin "daisyui" {
-    themes: light --default, dark --prefersdark;
-  }
+  themes: light --default, dark --prefersdark, night, synthwave, dracula, business, luxury, coffee;
+}
+
+/* Custom styles for dark themes */
+@custom-variant dark (&:where(
+  [data-theme=dark],
+  [data-theme=night],
+  [data-theme=dracula],
+  [data-theme=business],
+  [data-theme=luxury],
+  [data-theme=coffee]
+));
   
