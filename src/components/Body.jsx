@@ -36,7 +36,7 @@ const Body = () => {
     <div className="text-white">
       <NavBar />
       <Outlet /> {/* This renders Login/Profile inside Body */}
-      {/* <Footer /> */}
+      <Footer />
     </div>
   );
 };

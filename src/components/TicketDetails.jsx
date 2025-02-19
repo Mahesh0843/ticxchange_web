@@ -12,12 +12,22 @@ const TicketDetails = () => {
   const [ticket, setTicket] = useState(state?.ticket || null); // Initialize ticket state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [sellerReviews, setSellerReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   useEffect(() => {
     if (!state?.ticket) {
       fetchTicketDetails();
+    } else if (state.ticket.sellerId?._id) {
+      fetchSellerReviews(state.ticket.sellerId._id);
     }
   }, [state]);
+
+  useEffect(() => {
+    if (ticket?.sellerId?._id) {
+      fetchSellerReviews(ticket.sellerId._id);
+    }
+  }, [ticket]);
 
   const fetchTicketDetails = async () => {
     const controller = new AbortController();
@@ -35,6 +45,20 @@ const TicketDetails = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSellerReviews = async (sellerId) => {
+    try {
+      setReviewsLoading(true);
+      const response = await axios.get(`${BASE_URL}/ratings/seller/${sellerId}`);
+      if (response.data.success) {
+        setSellerReviews(response.data.ratings);
+      }
+    } catch (err) {
+      console.error('Error fetching seller reviews:', err);
+    } finally {
+      setReviewsLoading(false);
     }
   };
 
@@ -118,31 +142,71 @@ const TicketDetails = () => {
           </div>
         </div>
 
-        {/* Seller Card */}
+        {/* Seller Card with Reviews */}
         <div className="card bg-base-100 shadow-xl h-fit">
           <div className="card-body">
             <h2 className="card-title text-2xl">Seller Information</h2>
             {ticket.sellerId && (
-              <div className="flex items-center gap-4">
-                <div className="avatar">
-                  <div className="w-16 rounded-full">
-                    <img
-                      src={ticket.sellerId?.photoUrl || "https://via.placeholder.com/150"} // Fallback image
-                      alt={ticket.sellerId.firstName}
-                    />
+              <>
+                <div className="flex items-center gap-4">
+                  <div className="avatar">
+                    <div className="w-16 rounded-full">
+                      <img
+                        src={ticket.sellerId?.photoUrl || "https://via.placeholder.com/150"}
+                        alt={ticket.sellerId.firstName}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      {ticket.sellerId.firstName} {ticket.sellerId.lastName}
+                    </h3>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span>⭐</span>
+                        <span>{ticket.sellerId.averageRating || 'New Seller'}</span>
+                      </div>
+                      <p>🎫 Tickets Sold: {ticket.sellerId.sellerStats?.ticketsSold || 0}</p>
+                      <p>🛡️ Status: {ticket.sellerId.accountStatus || 'Unknown'}</p>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-semibold">
-                    {ticket.sellerId.firstName} {ticket.sellerId.lastName}
-                  </h3>
-                  <div className="space-y-1">
-                    <p>⭐ Seller Rating: {ticket.sellerId.averageRating || 'New Seller'}</p>
-                    <p>🎫 Tickets Sold: {ticket.sellerId.sellerStats?.ticketsSold || 0}</p>
-                    <p>🛡️ Status: {ticket.sellerId.accountStatus || 'Unknown'}</p>
+
+                {/* Reviews Collapse Section */}
+                <div tabIndex={0} className="collapse collapse-arrow border border-base-300 mt-4">
+                  <div className="collapse-title font-medium">
+                    {reviewsLoading ? (
+                      <span className="loading loading-spinner loading-sm"></span>
+                    ) : (
+                      `Seller Reviews (${sellerReviews.length})`
+                    )}
+                  </div>
+                  <div className="collapse-content">
+                    {reviewsLoading ? (
+                      <div className="flex justify-center py-4">
+                        <span className="loading loading-spinner loading-md"></span>
+                      </div>
+                    ) : sellerReviews.length > 0 ? (
+                      <div className="space-y-3">
+                        {sellerReviews.map((review) => (
+                          <div key={review._id} className="text-left p-2 rounded">
+                            <div className="flex items-center gap-1 mb-1">
+                              <span className="text-warning">★</span>
+                              <span className="text-sm">{review.rating}</span>
+                            </div>
+                            <p className="text-sm opacity-70">{review.comment}</p>
+                            <p className="text-xs opacity-50 mt-1">
+                              {new Date(review.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm opacity-70">No reviews yet for this seller.</p>
+                    )}
                   </div>
                 </div>
-              </div>
+              </>
             )}
 
             {error && (
