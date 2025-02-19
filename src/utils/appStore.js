@@ -5,6 +5,7 @@ import chatReducer from "./chatSlice";
 import requestReducer from "./requestSlice";
 import connectionReducer from "./connectionSlice";
 import searchReducer from "./searchSlice";
+import notificationReducer from "./notificationSlice";
 
 const appStore = configureStore({
   reducer: {
@@ -13,7 +14,8 @@ const appStore = configureStore({
     chat: chatReducer,
     requests: requestReducer,
     connections: connectionReducer,
-    search: searchReducer
+    search: searchReducer,
+    notifications: notificationReducer
   }
 });
 

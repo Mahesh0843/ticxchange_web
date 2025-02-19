@@ -5,6 +5,7 @@ import logo from "../assets/logo1.jpg";
 import { BASE_URL } from "../utils/constants";
 import { removeUser } from "../utils/userSlice";
 import { useEffect } from "react";
+import NotificationDropdown from "./NotificationDropdown";
 
 const themes = [ "dark", "night", "synthwave", "dracula", "business", "luxury", "coffee"];
 
@@ -100,6 +101,10 @@ const NavBar = () => {
               <span className="text-sm">
                 Welcome, {user.data?.user?.firstName || "User"}
               </span>
+              
+              {/* Add NotificationDropdown here */}
+              <NotificationDropdown />
+              
               <div className="dropdown dropdown-end">
                 <div
                   tabIndex={0}
