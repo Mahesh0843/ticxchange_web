@@ -93,7 +93,6 @@
 
 // export default Connections;
 
-
 import axios from "axios";
 import { BASE_URL } from "../utils/constants";
 import { useEffect, useState } from "react";
@@ -108,7 +107,7 @@ const Connections = () => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('date');
-  const { userId } = useParams(); // For active chat highlighting
+  const { userId } = useParams();
 
   const fetchConnections = async () => {
     try {
@@ -116,10 +115,10 @@ const Connections = () => {
       const res = await axios.get(BASE_URL + "/user/getConnections", {
         withCredentials: true,
       });
-      dispatch(addConnections(res.data.data));
+      dispatch(addConnections(res.data?.data || []));
     } catch (err) {
       console.error("Error fetching connections:", err);
-      dispatch(setError(err.message));
+      dispatch(setError(err.message || "Failed to fetch connections"));
     }
   };
 
@@ -132,11 +131,12 @@ const Connections = () => {
 
     return connections
       .filter(connection => {
+        if (!connection?.user || !connection?.ticket) return false;
         if (filter !== 'all' && connection.status !== filter) return false;
         if (searchTerm) {
           const searchLower = searchTerm.toLowerCase();
-          const userFullName = `${connection.user.firstName} ${connection.user.lastName}`.toLowerCase();
-          const eventName = connection.ticket.eventName.toLowerCase();
+          const userFullName = `${connection.user.firstName || ''} ${connection.user.lastName || ''}`.toLowerCase();
+          const eventName = (connection.ticket.eventName || '').toLowerCase();
           return userFullName.includes(searchLower) || eventName.includes(searchLower);
         }
         return true;
@@ -144,14 +144,14 @@ const Connections = () => {
       .sort((a, b) => {
         switch (sortBy) {
           case 'name':
-            return `${a.user.firstName} ${a.user.lastName}`.localeCompare(
-              `${b.user.firstName} ${b.user.lastName}`
+            return `${a.user?.firstName || ''} ${a.user?.lastName || ''}`.localeCompare(
+              `${b.user?.firstName || ''} ${b.user?.lastName || ''}`
             );
           case 'event':
-            return a.ticket.eventName.localeCompare(b.ticket.eventName);
+            return (a.ticket?.eventName || '').localeCompare(b.ticket?.eventName || '');
           case 'date':
           default:
-            return new Date(b.connectedAt) - new Date(a.connectedAt);
+            return new Date(b.connectedAt || 0) - new Date(a.connectedAt || 0);
         }
       });
   };
@@ -210,13 +210,15 @@ const Connections = () => {
               </div>
             ) : (
               filteredConnections.map((connection) => {
+                if (!connection?.user || !connection?.ticket) return null;
+
                 const { user, ticket, connectedAt, status } = connection;
                 const isActive = user._id === userId;
 
                 return (
                   <Link 
                     to={`/chat/${user._id}?ticketId=${ticket._id}`}
-                    key={user._id + ticket._id}
+                    key={`${user._id}-${ticket._id}`}
                     className={`
                       flex items-center gap-3 p-3 hover:bg-base-300 transition-colors
                       border-b border-base-300 cursor-pointer
@@ -225,30 +227,36 @@ const Connections = () => {
                   >
                     <div className="avatar">
                       <div className="w-12 h-12 rounded-full">
-                        <img src={user.photoUrl} alt={user.firstName} />
+                        <img 
+                          src={user.photoUrl || '/default-avatar.png'} 
+                          alt={user.firstName || 'User'} 
+                          onError={(e) => {
+                            e.target.src = '/default-avatar.png';
+                          }}
+                        />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start">
                         <h3 className="font-medium truncate">
-                          {user.firstName} {user.lastName}
+                          {user.firstName || ''} {user.lastName || ''}
                         </h3>
                         <span className="text-xs opacity-50">
-                          {new Date(connectedAt).toLocaleDateString()}
+                          {connectedAt ? new Date(connectedAt).toLocaleDateString() : ''}
                         </span>
                       </div>
                       <div className="text-sm opacity-70 truncate">
-                        {ticket.eventName}
+                        {ticket.eventName || 'No event name'}
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={`badge badge-sm ${
                           status === 'accepted' ? 'badge-success' : 
                           status === 'archived' ? 'badge-ghost' : 'badge-warning'
                         }`}>
-                          {status}
+                          {status || 'pending'}
                         </span>
                         <span className="text-xs opacity-50">
-                          ₹{ticket.price}
+                          ₹{ticket.price || 0}
                         </span>
                       </div>
                     </div>
