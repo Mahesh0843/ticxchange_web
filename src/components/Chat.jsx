@@ -23,8 +23,6 @@ const Chat = () => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [showDisputeModal, setShowDisputeModal] = useState(false);
-  const [disputeReason, setDisputeReason] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -157,8 +155,6 @@ const Chat = () => {
         withCredentials: true
       });
       
-      console.log('API Response:', response.data);
-      
       const ticketData = response.data.data || response.data;
       
       if (!ticketData.sellerId || !ticketData.status) {
@@ -166,14 +162,6 @@ const Chat = () => {
       }
       
       setTicket(ticketData);
-
-      // Log the processed ticket data
-      console.log('Processed Ticket Data:', {
-        sellerId: ticketData.sellerId._id,
-        currentUserId: userId,
-        isSeller: String(ticketData.sellerId._id) === String(userId),
-        status: ticketData.status
-      });
     } catch (error) {
       const errorMessage = error.response?.data?.error || error.message || 'Error fetching ticket details';
       setError(errorMessage);
@@ -189,18 +177,6 @@ const Chat = () => {
     }
   }, [ticketId]);
 
-  useEffect(() => {
-    if (ticket) {
-      console.log('Ticket Data:', {
-        ticketId,
-        sellerId: ticket.sellerId,
-        buyerId: ticket.buyerId,
-        status: ticket.status,
-        currentUserId: userId
-      });
-    }
-  }, [ticket]);
-
   const handleMarkAsSold = async () => {
     try {
       setIsLoading(true);
@@ -212,7 +188,6 @@ const Chat = () => {
         { withCredentials: true }
       );
       
-      // Update ticket status locally
       setTicket(prev => ({
         ...prev,
         status: 'pending'
@@ -239,14 +214,14 @@ const Chat = () => {
         { withCredentials: true }
       );
       
-      // Update ticket status locally
       setTicket(prev => ({
         ...prev,
         status: 'sold'
       }));
       
-      // Redirect to review page
-      window.location.href = `/review/${ticketId}`;
+      // Show review modal instead of redirecting
+      setShowReviewModal(true);
+      toast.success('Purchase confirmed successfully!');
     } catch (error) {
       const errorMessage = error.response?.data?.error || 'Error confirming purchase';
       setError(errorMessage);
@@ -260,93 +235,58 @@ const Chat = () => {
     try {
       setIsLoading(true);
       setError(null);
-      await axios.post(
-        `${BASE_URL}/tickets/${ticketId}/review`,
-        { rating, comment },
+      
+      if (rating < 1 || rating > 5) {
+        throw new Error('Rating must be between 1 and 5');
+      }
+
+      const response = await axios.post(
+        `${BASE_URL}/ratings/create`,
+        {
+          ticketId,
+          sellerId: ticket.sellerId._id,
+          rating,
+          comment
+        },
         { withCredentials: true }
       );
-      setShowReviewModal(false);
-      setRating(0);
-      setComment("");
-      await fetchTicket();
-      toast.success('Review submitted successfully');
+
+      if (response.data.success) {
+        toast.success('Review submitted successfully');
+        setShowReviewModal(false);
+        setRating(0);
+        setComment("");
+        
+        setTicket(prev => ({
+          ...prev,
+          reviewed: true
+        }));
+      } else {
+        throw new Error(response.data.message || 'Failed to submit review');
+      }
     } catch (error) {
-      const errorMessage = error.response?.data?.error || 'Error submitting review';
+      const errorMessage = error.response?.data?.error || error.message || 'Error submitting review';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleSubmitDispute = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      await axios.post(
-        `${BASE_URL}/tickets/${ticketId}/dispute`,
-        { reason: disputeReason },
-        { withCredentials: true }
-      );
-      setShowDisputeModal(false);
-      setDisputeReason("");
-      await fetchTicket();
-      toast.success('Issue reported successfully');
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || 'Error reporting issue';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const renderTicketStatus = () => {
-    if (!ticket) return null;
-
-    const statusClasses = {
-      available: 'badge-info',
-      pending: 'badge-warning',
-      sold: 'badge-success',
-      cancelled: 'badge-error'
-    };
-
-    return (
-      <div className="flex items-center gap-2">
-        <span className={`badge ${statusClasses[ticket.status] || 'badge-ghost'}`}>
-          {ticket.status?.toUpperCase()}
-        </span>
-        <span className="text-sm">
-          Price: ${ticket.price}
-        </span>
-      </div>
-    );
   };
 
   const renderActionButtons = () => {
-    if (!ticket) {
-      console.log('No ticket data available');
-      return null;
-    }
+    if (!ticket) return null;
 
-    // Fix the seller ID comparison
-    const sellerIdStr = String(ticket.sellerId._id); // Access the _id from the seller object
+    const sellerIdStr = String(ticket.sellerId._id);
     const userIdStr = String(userId);
     const isSeller = sellerIdStr === userIdStr;
-
-    console.log('Button Visibility Check:', {
-      sellerIdStr,
-      userIdStr,
-      isSeller,
-      status: ticket.status
-    });
+    const isBuyer = String(ticket.buyerId) === userIdStr;
 
     return (
       <div className="flex gap-2">
-        {/* Seller Button */}
+        {/* Seller buttons */}
         {isSeller && (
           <div>
-            {ticket.status === 'available' ? (
+            {ticket.status === 'available' && (
               <button 
                 onClick={handleMarkAsSold} 
                 className="btn btn-primary btn-lg"
@@ -354,16 +294,12 @@ const Chat = () => {
               >
                 {isLoading ? 'Processing...' : '✓ Mark Ticket as Sold'}
               </button>
-            ) : ticket.status === 'pending' ? (
-              <div className="badge badge-warning badge-lg">
-                Waiting for buyer confirmation
-              </div>
-            ) : null}
+            )}
           </div>
         )}
 
-        {/* Buyer Button */}
-        {String(ticket.buyerId) === userIdStr && (
+        {/* Buyer buttons */}
+        {isBuyer && (
           <div>
             {ticket.status === 'pending' ? (
               <button 
@@ -375,8 +311,9 @@ const Chat = () => {
               </button>
             ) : ticket.status === 'sold' && !ticket.reviewed ? (
               <button 
-                onClick={() => window.location.href = `/review/${ticketId}`}
+                onClick={() => setShowReviewModal(true)}
                 className="btn btn-secondary btn-lg"
+                disabled={isLoading}
               >
                 Leave Review
               </button>
@@ -444,7 +381,7 @@ const Chat = () => {
                 backgroundRepeat: 'no-repeat'
               }}
             >
-              {isLoading ? (
+              {isLoading && messages.length === 0 ? (
                 <div className="text-center">
                   <span className="loading loading-spinner loading-md"></span>
                 </div>
@@ -495,72 +432,60 @@ const Chat = () => {
         )}
       </div>
 
+      {/* Review Modal */}
       {showReviewModal && (
         <div className="modal modal-open">
           <div className="modal-box">
-            <h3 className="font-bold text-lg">Leave a Review</h3>
-            <div className="form-control">
-              <label className="label">Rating (1-5)</label>
-              <input
-                type="number"
-                min="1"
-                max="5"
-                value={rating}
-                onChange={(e) => setRating(Number(e.target.value))}
-                className="input input-bordered"
-              />
+            <h3 className="font-bold text-lg mb-4">Rate Your Experience</h3>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Rating</span>
+              </label>
+              <div className="rating rating-lg flex justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <input
+                    key={star}
+                    type="radio"
+                    name="rating"
+                    className="mask mask-star-2 bg-orange-400"
+                    checked={rating === star}
+                    onChange={() => setRating(star)}
+                  />
+                ))}
+              </div>
+              <div className="text-center mt-2 text-sm text-gray-500">
+                {rating === 1 && "Poor"}
+                {rating === 2 && "Fair"}
+                {rating === 3 && "Good"}
+                {rating === 4 && "Very Good"}
+                {rating === 5 && "Excellent"}
+              </div>
             </div>
-            <div className="form-control">
-              <label className="label">Comment</label>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Your Review</span>
+              </label>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                className="textarea textarea-bordered"
+                className="textarea textarea-bordered h-24"
+                placeholder="Share your experience..."
               />
             </div>
             <div className="modal-action">
               <button 
                 onClick={handleSubmitReview} 
                 className="btn btn-primary"
-                disabled={isLoading || rating < 1 || rating > 5}
+                disabled={isLoading || rating < 1}
               >
                 {isLoading ? 'Submitting...' : 'Submit Review'}
               </button>
               <button
-                onClick={() => setShowReviewModal(false)}
-                className="btn btn-ghost"
-                disabled={isLoading}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showDisputeModal && (
-        <div className="modal modal-open">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">Report an Issue</h3>
-            <div className="form-control">
-              <label className="label">Describe the Issue</label>
-              <textarea
-                value={disputeReason}
-                onChange={(e) => setDisputeReason(e.target.value)}
-                className="textarea textarea-bordered"
-                placeholder="Please provide details about the issue..."
-              />
-            </div>
-            <div className="modal-action">
-              <button 
-                onClick={handleSubmitDispute} 
-                className="btn btn-error"
-                disabled={isLoading || !disputeReason.trim()}
-              >
-                {isLoading ? 'Submitting...' : 'Submit Report'}
-              </button>
-              <button
-                onClick={() => setShowDisputeModal(false)}
+                onClick={() => {
+                  setShowReviewModal(false);
+                  setRating(0);
+                  setComment('');
+                }}
                 className="btn btn-ghost"
                 disabled={isLoading}
               >
