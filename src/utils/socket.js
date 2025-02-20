@@ -22,7 +22,7 @@ import { BASE_URL } from "./constants";
 export const createSocketConnection = () => {
   if (location.hostname === "localhost") {
     // Development environment
-    return io("http://localhost:5000", {
+    return io("http://localhost:8888", {
       withCredentials: true,
       transports: ["websocket"]
     });
