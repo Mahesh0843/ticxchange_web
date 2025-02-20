@@ -75,7 +75,7 @@ const NotificationDropdown = () => {
   const handleMarkAllAsRead = async () => {
     try {
       // Using the new endpoint that marks as read and deletes
-      await axios.patch(`${BASE_URL}/notifications/read-and-delete-all`, {}, {
+      await axios.post(`${BASE_URL}/notifications/read-and-delete-all`, {}, {
         withCredentials: true
       });
       
