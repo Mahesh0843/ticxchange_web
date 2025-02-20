@@ -1,17 +1,37 @@
+// import io from "socket.io-client";
+// import { BASE_URL } from "./constants";
+
+// export const createSocketConnection = () => {
+//   if (location.hostname === "localhost") {
+//     return io(BASE_URL, {
+//       withCredentials: true,
+//       transports: ["websocket"]
+//     });
+//   } else {
+//     return io("/", { 
+//       path: "/api/socket.io",
+//       withCredentials: true,
+//       transports: ["websocket"]
+//     });
+//   }
+// };
+
 import io from "socket.io-client";
 import { BASE_URL } from "./constants";
 
 export const createSocketConnection = () => {
   if (location.hostname === "localhost") {
-    return io(BASE_URL, {
+    // Development environment
+    return io("http://localhost:5000", {
       withCredentials: true,
       transports: ["websocket"]
     });
   } else {
-    return io("/", { 
-      path: "/api/socket.io",
+    // Production environment
+    return io("https://ticxchange.onrender.com", {  // Replace with your actual backend URL
       withCredentials: true,
-      transports: ["websocket"]
+      transports: ["websocket"],
+      path: "/socket.io"  // Default Socket.IO path
     });
   }
 };
