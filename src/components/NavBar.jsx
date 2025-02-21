@@ -156,7 +156,7 @@ const NavBar = () => {
                     </li>
                     <li><Link to="/connections">Connections</Link></li>
                     <li><Link to="/requests">Requests</Link></li>
-                    <li><Link to="/profile/update-password">Forgot Password</Link></li>
+                    <li><Link to="/change-password">Change Password</Link></li>
                     <li><button onClick={handleLogout}>Logout</button></li>
                   </ul>
                 </div>
@@ -221,6 +221,7 @@ const NavBar = () => {
                         <Link to="/requests" className="btn btn-ghost justify-start text-lg normal-case px-4 w-full">
                           Requests
                         </Link>
+                        <li><Link to="/change-password" className="btn btn-ghost justify-start text-lg normal-case px-4 w-full">Change Password</Link></li>
                         <button 
                           onClick={handleLogout} 
                           className="btn btn-ghost justify-start text-lg normal-case px-4 w-full"

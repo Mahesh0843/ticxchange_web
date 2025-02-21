@@ -139,6 +139,7 @@ const CreateTicketPage = () => {
                   accept="image/*"
                   required
                 />
+                <p className="text-sm text-gray-600 mt-2">Currently testing on various tickets.</p>
               </div>
             ) : (
               // Manual Entry Form

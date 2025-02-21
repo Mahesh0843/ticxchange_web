@@ -16,8 +16,15 @@ import AboutUs from "./components/AboutUs";
 import Chat from "./components/Chat";
 import BuyerTicketPage from "./pages/BuyerTicketPage";
 import ErrorPage from "./components/ErrorPage";
+import VerifyEmail from './components/VerifyEmail';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
+import ChangePassword from './components/ChangePassword';
 
 function App() {
+  const searchParams = new URLSearchParams(window.location.search);
+  const token = searchParams.get('token');
+
   return (
     <Routes>
       <Route path="/" element={<Body />}>
@@ -36,6 +43,10 @@ function App() {
         <Route path="ticket/:id" element={<TicketDetails />} />
         <Route path="chat/:targetUserId" element={<Chat />} />
         <Route path="buyer/tickets" element={<BuyerTicketPage />} />
+        <Route path="verify-email" element={<VerifyEmail />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="reset-password" element={<ResetPassword />} />
+        <Route path="change-password" element={<ChangePassword />} />
         <Route path="*" element={<ErrorPage />} />
       </Route>
     </Routes>

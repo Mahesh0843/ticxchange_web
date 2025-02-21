@@ -6,12 +6,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { addUser } from "../utils/userSlice";
 import { useEffect } from "react";
 import axios from "axios";
+import SubmitSuggestion from '../components/SubmitSuggestion';
 
 const Body = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const userData = useSelector((store) => store.user);
-
 
   const fetchUser = async () => {
     if (userData) return  navigate("/");
@@ -36,6 +36,13 @@ const Body = () => {
     <div className="text-white">
       <NavBar />
       <Outlet /> {/* This renders Login/Profile inside Body */}
+
+      {userData && (
+        <div className="p-4">
+          <SubmitSuggestion />
+        </div>
+      )}
+
       <Footer />
     </div>
   );

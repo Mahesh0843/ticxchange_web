@@ -2,7 +2,7 @@ import { useState,useEffect } from "react";
 import axios from "axios";
 import { useDispatch,useSelector } from "react-redux";
 import { addUser } from "../utils/userSlice";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { BASE_URL } from "../utils/constants";
 
 const LoginForm = () => {
@@ -203,6 +203,13 @@ const LoginForm = () => {
               {isLoginForm ? "Sign up here" : "Login here"}
             </button>
           </p>
+          {/* {isLoginForm && (
+            <p className="text-center mt-2">
+              <Link to="/forgot-password" className="text-blue-500 hover:underline">
+                Forgot Password?
+              </Link>
+            </p>
+          )} */}
         </div>
       </div>
     </div>

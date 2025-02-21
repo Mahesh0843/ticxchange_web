@@ -66,8 +66,35 @@ const TicketDetails = () => {
     const controller = new AbortController();
     try {
       setLoading(true);
+      
+      // Check if user is logged in and is a buyer
       if (!user || user.data?.user?.role !== 'buyer') {
         return navigate('/login');
+      }
+
+      // Check if phone number is verified
+      if (!user.data?.user?.phoneVerified) {
+        // Show alert for phone verification
+        const alert = document.createElement('div');
+        alert.innerHTML = `
+          <div class="alert alert-warning shadow-lg">
+            <div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+              </svg>
+              <div>
+                <h3 class="font-bold">Phone Verification Required!</h3>
+                <div class="text-xs">Please verify your phone number in your profile before showing interest.</div>
+              </div>
+            </div>
+            <div class="flex-none">
+              <button class="btn btn-sm" onclick="window.location.href='/profile'">Go to Profile</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(alert);
+        setTimeout(() => alert.remove(), 5000); // Remove alert after 5 seconds
+        return navigate('/profile');
       }
 
       const sellerId = ticket.sellerId._id || ticket.sellerId;
@@ -79,6 +106,20 @@ const TicketDetails = () => {
 
       if (response.data) {
         setTicket((prev) => ({ ...prev, hasRequest: true }));
+        // Show success alert
+        const alert = document.createElement('div');
+        alert.innerHTML = `
+          <div class="alert alert-success shadow-lg">
+            <div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>Interest shown successfully! The seller will be notified.</span>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(alert);
+        setTimeout(() => alert.remove(), 3000); // Remove alert after 3 seconds
       }
     } catch (err) {
       if (!axios.isCancel(err)) {
@@ -219,12 +260,22 @@ const TicketDetails = () => {
             )}
 
             <div className="card-actions justify-end mt-6">
+              {!user.data?.user?.phoneVerified && (
+                <div className="alert alert-warning shadow-sm mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <span>Phone verification required to show interest</span>
+                </div>
+              )}
               <button
                 className={`btn btn-primary ${loading ? 'loading' : ''}`}
                 onClick={handleInterest}
-                disabled={ticket.hasRequest || !ticket.isAvailable}
+                disabled={ticket.hasRequest || !ticket.isAvailable || !user.data?.user?.phoneVerified}
               >
-                {ticket.hasRequest ? 'Request Sent' : 'Show Interest'}
+                {ticket.hasRequest ? 'Request Sent' : 
+                 !user.data?.user?.phoneVerified ? 'Verify Phone First' : 
+                 'Show Interest'}
               </button>
             </div>
           </div>
