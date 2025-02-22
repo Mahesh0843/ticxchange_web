@@ -12,6 +12,7 @@ const UserCard = ({ user }) => {
     averageRating = 0,
     phoneVerified = false,
     createdAt = new Date().toISOString(),
+    accountStatus = 'active', // Destructure accountStatus
     _id
   } = user?.data?.user || {};
 
@@ -30,6 +31,18 @@ const UserCard = ({ user }) => {
       }
     } catch (error) {
       console.error('Error fetching ratings:', error);
+    }
+  };
+
+  // Function to determine the status badge style
+  const getStatusBadgeStyle = (status) => {
+    switch (status) {
+      case 'warned':
+        return 'bg-warning/10 text-warning';
+      case 'blocked':
+        return 'bg-error/10 text-error';
+      default:
+        return 'bg-success/10 text-success';
     }
   };
 
@@ -55,6 +68,13 @@ const UserCard = ({ user }) => {
 
         <div className="space-y-4 text-center">
           <p className="text-xl font-bold">{`${firstName} ${lastName}`}</p>
+
+          {/* Account Status Badge */}
+          {role === 'seller' && (
+            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize ${getStatusBadgeStyle(accountStatus)}`}>
+              {accountStatus}
+            </span>
+          )}
 
           {role === 'seller' && sellerStats && (
             <div className="rounded-lg p-4">
