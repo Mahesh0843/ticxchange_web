@@ -20,7 +20,7 @@ const teamMembers = [
   {
     name: "Sai Phanindra",
     role: "UI/UX Designer",
-    github: "",
+    github: "https://github.com/PhaniGITTER",
     linkedin: "https://www.linkedin.com/in/sai-phanindra-27ab65220/",
   },
   {
